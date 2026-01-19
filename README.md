@@ -10,7 +10,21 @@
 ![Express](https://img.shields.io/badge/Express-5.x-green)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
 
-## 🏋️ Features
+## � Live Demo
+
+| Service | URL |
+|---------|-----|
+| **Frontend** | [https://nazen-gym.netlify.app](https://nazen-gym.netlify.app) |
+| **Backend API** | [https://nazen-back-end.onrender.com](https://nazen-back-end.onrender.com) |
+| **Database** | Supabase (PostgreSQL) |
+
+### Demo Credentials
+| Role | Phone | Password |
+|------|-------|----------|
+| Admin | `+919876543210` | `admin123` |
+| Member | `+919876543211` | `member123` |
+
+## �🏋️ Features
 
 ### For Gym Admins
 - **Member Management** - Add, edit, freeze, extend memberships
