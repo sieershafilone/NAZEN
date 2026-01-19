@@ -224,3 +224,8 @@ MIT License - feel free to use for your gym!
 ---
 
 **Built with ❤️ for Nazen – Powered by Being Strong, Handwara**
+
+👨‍💻 Author
+Created & Developed by: SIEER SHAFI LONE
+Role: Founder & Lead Developer
+GitHub: @sieershafilone https://github.com/sieershafilone
