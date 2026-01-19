@@ -70,7 +70,7 @@ export default function MembersPage() {
             let filteredMembers = response.data.data.members;
 
             if (statusFilter !== 'ALL') {
-                filteredMembers = filteredMembers.filter(m => {
+                filteredMembers = filteredMembers.filter((m: Member) => {
                     const status = m.memberships?.[0]?.status || 'EXPIRED';
                     return status === statusFilter;
                 });
@@ -88,7 +88,7 @@ export default function MembersPage() {
     const fetchPlans = async () => {
         try {
             const response = await plansAPI.getAll();
-            setPlans(response.data.data.filter(p => p.isActive));
+            setPlans(response.data.data.filter((p: MembershipPlan) => p.isActive));
         } catch (error) {
             console.error('Failed to load plans');
         }
