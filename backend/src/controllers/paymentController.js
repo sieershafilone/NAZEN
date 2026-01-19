@@ -5,11 +5,17 @@ const config = require('../config');
 const { generateInvoiceNumber, calculateGST, formatCurrency, calculateEndDate } = require('../utils/helpers');
 const { generateInvoicePDF } = require('../utils/pdfGenerator');
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-    key_id: config.razorpay.keyId,
-    key_secret: config.razorpay.keySecret,
-});
+// Initialize Razorpay (optional - only if keys are provided)
+let razorpay = null;
+if (config.razorpay.keyId && config.razorpay.keySecret) {
+    razorpay = new Razorpay({
+        key_id: config.razorpay.keyId,
+        key_secret: config.razorpay.keySecret,
+    });
+    console.log('✅ Razorpay initialized');
+} else {
+    console.log('⚠️ Razorpay keys not configured - payment features disabled');
+}
 
 // Get all payments
 const getAllPayments = async (req, res, next) => {
@@ -104,6 +110,13 @@ const getPayment = async (req, res, next) => {
 // Create Razorpay order
 const createRazorpayOrder = async (req, res, next) => {
     try {
+        if (!razorpay) {
+            return res.status(503).json({
+                success: false,
+                message: 'Online payments not configured. Please pay via Cash/UPI.',
+            });
+        }
+
         const { memberId, planId } = req.body;
 
         const plan = await prisma.membershipPlan.findUnique({
