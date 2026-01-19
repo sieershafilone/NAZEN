@@ -1,0 +1,304 @@
+// Prisma Schema for Nazen Gym Management System
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==================== ENUMS ====================
+
+enum UserRole {
+  ADMIN
+  MEMBER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  EXPIRED
+  FROZEN
+  CANCELLED
+}
+
+enum PaymentMethod {
+  RAZORPAY
+  UPI
+  CASH
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum AttendanceMethod {
+  QR
+  MANUAL
+}
+
+enum WorkoutType {
+  PUSH_PULL_LEGS
+  BRO_SPLIT
+  FULL_BODY
+  UPPER_LOWER
+  CUSTOM
+}
+
+enum ImageCategory {
+  EXTERIOR
+  INTERIOR
+  EQUIPMENT
+  GALLERY
+  TRANSFORMATION
+}
+
+enum ImageVisibility {
+  PUBLIC
+  ADMIN_ONLY
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id           String     @id @default(uuid())
+  fullName     String
+  email        String?    @unique
+  mobile       String     @unique
+  password     String
+  role         UserRole   @default(MEMBER)
+  status       UserStatus @default(ACTIVE)
+  profilePhoto String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  // Relations
+  member       Member?
+  
+  @@index([mobile])
+  @@index([email])
+}
+
+model Member {
+  id               String   @id @default(uuid())
+  memberId         String   @unique // Display ID like NAZ-001
+  userId           String   @unique
+  gender           Gender
+  dateOfBirth      DateTime
+  height           Decimal? @db.Decimal(5, 2)
+  weight           Decimal? @db.Decimal(5, 2)
+  fitnessGoal      String?
+  medicalNotes     String?
+  emergencyContact String?
+  joinDate         DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memberships      Membership[]
+  payments         Payment[]
+  attendance       Attendance[]
+  progressRecords  ProgressRecord[]
+  memberWorkouts   MemberWorkout[]
+
+  @@index([memberId])
+}
+
+model MembershipPlan {
+  id           String   @id @default(uuid())
+  name         String
+  durationDays Int
+  basePrice    Decimal  @db.Decimal(10, 2)
+  gstPercent   Decimal  @default(18) @db.Decimal(5, 2)
+  finalPrice   Decimal  @db.Decimal(10, 2)
+  description  String?
+  features     Json?    // Array of features
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  memberships  Membership[]
+}
+
+model Membership {
+  id          String           @id @default(uuid())
+  memberId    String
+  planId      String
+  startDate   DateTime
+  endDate     DateTime
+  status      MembershipStatus @default(ACTIVE)
+  frozenDays  Int              @default(0)
+  frozenAt    DateTime?
+  unfrozenAt  DateTime?
+  notes       String?
+  lastNotificationDate DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  member      Member         @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  plan        MembershipPlan @relation(fields: [planId], references: [id])
+  payments    Payment[]
+
+  @@index([memberId])
+  @@index([status])
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique
+  memberId      String
+  membershipId  String
+  amount        Decimal       @db.Decimal(10, 2)
+  gstAmount     Decimal       @db.Decimal(10, 2)
+  paymentMethod PaymentMethod
+  razorpayId    String?
+  razorpayOrderId String?
+  status        PaymentStatus @default(PENDING)
+  paidAt        DateTime?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  member        Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  membership    Membership @relation(fields: [membershipId], references: [id])
+
+  @@index([memberId])
+  @@index([invoiceNumber])
+  @@index([status])
+}
+
+model Attendance {
+  id           String           @id @default(uuid())
+  memberId     String
+  checkInTime  DateTime         @default(now())
+  checkOutTime DateTime?
+  method       AttendanceMethod @default(MANUAL)
+  notes        String?
+  createdAt    DateTime         @default(now())
+
+  // Relations
+  member       Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
+  @@index([checkInTime])
+}
+
+model WorkoutPlan {
+  id           String      @id @default(uuid())
+  name         String
+  type         WorkoutType
+  description  String?
+  exercises    Json        // Array of exercise objects
+  daysPerWeek  Int         @default(5)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relations
+  memberWorkouts MemberWorkout[]
+}
+
+model MemberWorkout {
+  id            String   @id @default(uuid())
+  memberId      String
+  workoutPlanId String
+  assignedAt    DateTime @default(now())
+  isActive      Boolean  @default(true)
+  notes         String?
+
+  // Relations
+  member        Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  workoutPlan   WorkoutPlan @relation(fields: [workoutPlanId], references: [id])
+
+  @@unique([memberId, workoutPlanId])
+}
+
+model ProgressRecord {
+  id         String   @id @default(uuid())
+  memberId   String
+  weight     Decimal? @db.Decimal(5, 2)
+  bodyFat    Decimal? @db.Decimal(5, 2)
+  chest      Decimal? @db.Decimal(5, 2)
+  waist      Decimal? @db.Decimal(5, 2)
+  hips       Decimal? @db.Decimal(5, 2)
+  arms       Decimal? @db.Decimal(5, 2)
+  thighs     Decimal? @db.Decimal(5, 2)
+  photo      String?
+  notes      String?
+  recordedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  // Relations
+  member     Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
+  @@index([recordedAt])
+}
+
+model GymImage {
+  id         String          @id @default(uuid())
+  title      String
+  category   ImageCategory
+  imageUrl   String
+  visibility ImageVisibility @default(PUBLIC)
+  sortOrder  Int             @default(0)
+  uploadedAt DateTime        @default(now())
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([category])
+  @@index([visibility])
+}
+
+model GymSettings {
+  id           String   @id @default(uuid())
+  gymName      String   @default("Nazen – Powered by Being Strong")
+  tagline      String?  @default("Transform Your Body, Transform Your Life")
+  address      String   @default("97XQ+CW3, Handwara, Jammu and Kashmir – 193221, India")
+  phone        String?  @default("+91 1234567890")
+  email        String?
+  website      String?
+  gstin        String?
+  logo         String?
+  favicon      String?
+  workingHours Json?    // { monday: { open: "06:00", close: "22:00" }, ... }
+  currency     String   @default("INR")
+  timezone     String   @default("Asia/Kolkata")
+  socialLinks  Json?    // { instagram: "", facebook: "", youtube: "" }
+  notificationSettings Json? // { emailAlerts: true, smsAlerts: false, marketingEmails: false }
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String   // membership_expiry, payment_reminder, general
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+}
