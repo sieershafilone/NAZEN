@@ -208,11 +208,7 @@ NAIZEN/
 #### Step 4: Update CORS
 Go back to Render and update `FRONTEND_URL` with your Netlify URL.
 
-### Demo Credentials
-| Role | Phone | Password |
-|------|-------|----------|
-| **Admin** | +918803210661 | 123456 |
-
+s
 ## 🤝 Contributing
 
 1. Fork the repository
