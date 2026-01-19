@@ -3,6 +3,14 @@ const { PrismaPg } = require('@prisma/adapter-pg');
 const { Pool } = require('pg');
 
 const connectionString = process.env.DATABASE_URL;
+
+// Debug: Check if DATABASE_URL is set
+if (!connectionString) {
+  console.error('❌ DATABASE_URL is not set!');
+} else {
+  console.log('✅ DATABASE_URL is configured (connection string present)');
+}
+
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 

@@ -14,7 +14,7 @@ initScheduler();
 
 // Middleware
 app.use(cors({
-    origin: config.frontend.url,
+    origin: true, // Allow all origins for now
     credentials: true,
 }));
 app.use(express.json());
